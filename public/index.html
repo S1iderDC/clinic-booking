@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>МНТК - Запись на консультацию</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' stroke='%230066cc' stroke-width='2' fill='white'/%3E%3Ccircle cx='32' cy='32' r='9' stroke='%230066cc' stroke-width='2' fill='none'/%3E%3Ccircle cx='32' cy='32' r='3.5' fill='%230066cc'/%3E%3C/svg%3E">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { background: white; border-bottom: 1px solid #e0e0e0; padding: 16px 0; margin-bottom: 32px; }
+    .header-content { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 40px; height: 40px; }
+    .logo-text h1 { font-size: 18px; font-weight: 600; }
+    .logo-text p { font-size: 11px; color: #666; }
+    .admin-link { color: #666; text-decoration: none; font-size: 14px; }
+    .admin-link:hover { color: #0066cc; }
+    .hero { background: linear-gradient(135deg, #1a4d8c 0%, #0d2b4d 100%); color: white; padding: 48px 0; margin-bottom: 32px; border-radius: 16px; }
+    .hero-content { max-width: 800px; margin: 0 auto; text-align: center; padding: 0 20px; }
+    .hero-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 16px; }
+    .hero h1 { font-size: 28px; margin-bottom: 16px; }
+    .hero p { font-size: 16px; opacity: 0.9; }
+    .external-forms { background: white; border-radius: 12px; padding: 20px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .external-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+    .btn-external { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; color: #333; font-size: 14px; }
+    .calendar-container { background: white; border-radius: 12px; padding: 20px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .month-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+    .month-select { padding: 10px 16px; font-size: 14px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer; min-width: 180px; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 16px; }
+    .calendar-weekday { text-align: center; padding: 8px 4px; font-weight: 600; font-size: 13px; color: #666; }
+    .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-size: 13px; background: white; }
+    .calendar-day:hover:not(.disabled) { background: #e6f0ff; border-color: #0066cc; }
+    .calendar-day.selected { background: #0066cc; color: white; border-color: #0066cc; }
+    .calendar-day.disabled { background: #f5f5f5; color: #ccc; cursor: not-allowed; }
+    .calendar-day.today { border-color: #0066cc; font-weight: bold; }
+    .selected-date-info { text-align: center; padding: 12px; background: #e6f0ff; border-radius: 8px; font-size: 14px; margin-top: 16px; }
+    .slots-section { background: white; border-radius: 12px; padding: 20px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 16px; }
+    .slot { padding: 10px 6px; text-align: center; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 12px; }
+    .slot:hover:not(.booked) { background: #e6f0ff; border-color: #0066cc; }
+    .slot.booked { background: #f5f5f5; color: #999; text-decoration: line-through; cursor: not-allowed; }
+    .slot.selected { background: #0066cc; color: white; border-color: #0066cc; }
+    .legend { display: flex; gap: 24px; margin-top: 16px; font-size: 12px; color: #666; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-color { width: 20px; height: 20px; border-radius: 4px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; border-radius: 16px; max-width: 500px; width: 90%; padding: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
+    .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+    .btn-primary { background: #0066cc; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+    .btn-secondary { background: #f0f0f0; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1100; display: none; }
+    .toast.success { border-left: 4px solid #28a745; }
+    .toast.error { border-left: 4px solid #dc3545; }
+    .toast.show { display: block; }
+    footer { margin-top: 48px; padding: 24px 0; border-top: 1px solid #e0e0e0; font-size: 12px; color: #666; text-align: center; }
+    .loading { text-align: center; padding: 40px; }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 22px; }
+      .calendar-grid { gap: 4px; }
+      .calendar-day { font-size: 11px; }
+      .slots-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" stroke="#0066cc" stroke-width="2" fill="white"/>
+          <path d="M10 32 C 18 18, 46 18, 54 32 C 46 46, 18 46, 10 32 Z" stroke="#0066cc" stroke-width="2" fill="none"/>
+          <circle cx="32" cy="32" r="9" stroke="#0066cc" stroke-width="2" fill="none"/>
+          <circle cx="32" cy="32" r="3.5" fill="#0066cc"/>
+        </svg>
+        <div class="logo-text">
+          <h1>МНТК Микрохирургия глаза</h1>
+          <p>им. акад. С.Н. Фёдорова</p>
+        </div>
+      </div>
+      <a href="/admin.html" class="admin-link">Вход для администратора →</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="hero">
+      <div class="hero-content">
+        <span class="hero-badge">Бесплатная консультация</span>
+        <h1>Запись на консультацию офтальмолога</h1>
+        <p>Выберите удобную дату и время. Консультация бесплатная.</p>
+      </div>
+    </div>
+
+    <div id="externalForms" class="external-forms" style="display: none;">
+      <h3>Альтернативные способы записи</h3>
+      <div class="external-buttons" id="externalButtons"></div>
+    </div>
+
+    <div class="calendar-container">
+      <div class="month-selector">
+        <h3>Выберите месяц</h3>
+        <select id="monthSelect" class="month-select"></select>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+      <div id="selectedDateInfo" class="selected-date-info" style="display: none;"></div>
+    </div>
+
+    <div id="slotsSection" class="slots-section" style="display: none;">
+      <h3>Выберите время (шаг 10 минут, с 08:00 до 23:00)</h3>
+      <div id="slotsGrid" class="slots-grid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background: white; border: 1px solid #ddd;"></div> Свободно</div>
+        <div class="legend-item"><div class="legend-color" style="background: #f5f5f5; border: 1px solid #ddd;"></div> Занято</div>
+        <div class="legend-item"><div class="legend-color" style="background: #0066cc;"></div> Выбрано</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>ФГАУ НМИЦ МНТК Микрохирургия глаза им. акад. С.Н. Фёдорова Минздрава России</p>
+      <p>127486, Москва, Бескудниковский бульвар, 59А</p>
+    </div>
+  </footer>
+
+  <div id="bookingModal" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 20px;">Запись на консультацию</h3>
+      <div id="selectedSlotInfo" style="background: #f0f0f0; padding: 12px; border-radius: 8px; margin-bottom: 20px;"></div>
+      <form id="bookingForm">
+        <div class="form-group">
+          <label>ФИО *</label>
+          <input type="text" id="fullName" required placeholder="Иванов Иван Иванович">
+        </div>
+        <div class="form-group">
+          <label>Телефон</label>
+          <input type="tel" id="phone" placeholder="+7 123 456-78-90">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="example@mail.ru">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Отмена</button>
+          <button type="submit" class="btn-primary">Записаться</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let selectedDate = null;
+    let selectedSlot = null;
+    let currentSlots = [];
+    let externalLinks = { googleFormUrl: '', yandexFormUrl: '' };
+
+    function isDatePast(dateStr) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const checkDate = new Date(dateStr);
+      checkDate.setHours(0, 0, 0, 0);
+      return checkDate < today;
+    }
+
+    function populateMonthSelect() {
+      const select = document.getElementById('monthSelect');
+      const currentDate = new Date();
+      const currentYearNum = currentDate.getFullYear();
+      for (let year = 2026; year <= currentYearNum + 2; year++) {
+        for (let month = 0; month < 12; month++) {
+          const monthDate = new Date(year, month, 1);
+          const monthName = monthDate.toLocaleString('ru', { month: 'long', year: 'numeric' });
+          const option = document.createElement('option');
+          option.value = year + '-' + month;
+          option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+          if (year === currentYearNum && month === currentMonth) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        }
+      }
+      select.addEventListener('change', (e) => {
+        const parts = e.target.value.split('-');
+        currentYear = parseInt(parts[0]);
+        currentMonth = parseInt(parts[1]);
+        renderCalendar();
+      });
+    }
+
+    async function loadExternalLinks() {
+      try {
+        const response = await fetch('/api/form-links');
+        const data = await response.json();
+        externalLinks = data;
+        if (externalLinks.googleFormUrl || externalLinks.yandexFormUrl) {
+          document.getElementById('externalForms').style.display = 'block';
+          const buttonsDiv = document.getElementById('externalButtons');
+          buttonsDiv.innerHTML = '';
+          if (externalLinks.googleFormUrl) {
+            buttonsDiv.innerHTML += '<a href="' + externalLinks.googleFormUrl + '" target="_blank" class="btn-external">Google Forms</a>';
+          }
+          if (externalLinks.yandexFormUrl) {
+            buttonsDiv.innerHTML += '<a href="' + externalLinks.yandexFormUrl + '" target="_blank" class="btn-external">Яндекс Формы</a>';
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function renderCalendar() {
+      const firstDay = new Date(currentYear, currentMonth, 1);
+      const lastDay = new Date(currentYear, currentMonth + 1, 0);
+      let startDayOfWeek = firstDay.getDay();
+      startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+      const daysInMonth = lastDay.getDate();
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      let html = '<div class="calendar-weekday">Пн</div><div class="calendar-weekday">Вт</div><div class="calendar-weekday">Ср</div><div class="calendar-weekday">Чт</div><div class="calendar-weekday">Пт</div><div class="calendar-weekday">Сб</div><div class="calendar-weekday">Вс</div>';
+      for (let i = 0; i < startDayOfWeek; i++) {
+        html += '<div class="calendar-day disabled"></div>';
+      }
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = currentYear + '-' + String(currentMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        const isToday = dateStr === todayStr;
+        const isPast = isDatePast(dateStr);
+        const isSelected = selectedDate === dateStr;
+        if (isPast) {
+          html += '<div class="calendar-day disabled" title="Нельзя выбрать прошедшую дату">' + day + '</div>';
+        } else {
+          html += '<div class="calendar-day ' + (isSelected ? 'selected' : '') + (isToday ? ' today' : '') + '" onclick="selectDate(\'' + dateStr + '\')">' + day + '</div>';
+        }
+      }
+      document.getElementById('calendarGrid').innerHTML = html;
+    }
+
+    async function selectDate(date) {
+      selectedDate = date;
+      selectedSlot = null;
+      renderCalendar();
+      const dateObj = new Date(date);
+      const formattedDate = dateObj.toLocaleDateString('ru', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('selectedDateInfo').innerHTML = 'Выбрана дата: ' + formattedDate;
+      document.getElementById('selectedDateInfo').style.display = 'block';
+      document.getElementById('slotsSection').style.display = 'block';
+      await loadSlots(date);
+    }
+
+    async function loadSlots(date) {
+      try {
+        const response = await fetch('/api/slots/' + date);
+        const data = await response.json();
+        currentSlots = data.slots;
+        renderSlots();
+      } catch (error) {
+        document.getElementById('slotsGrid').innerHTML = '<div class="loading">Ошибка загрузки слотов</div>';
+      }
+    }
+
+    function renderSlots() {
+      const container = document.getElementById('slotsGrid');
+      if (!currentSlots || currentSlots.length === 0) {
+        container.innerHTML = '<div class="loading">Нет доступных слотов на этот день</div>';
+        return;
+      }
+      container.innerHTML = '';
+      for (let i = 0; i < currentSlots.length; i++) {
+        const slot = currentSlots[i];
+        const isBooked = slot.booked;
+        const isSelected = selectedSlot === slot.key;
+        let buttonClass = 'slot';
+        if (isBooked) buttonClass += ' booked';
+        if (isSelected) buttonClass += ' selected';
+        const button = document.createElement('button');
+        button.className = buttonClass;
+        button.textContent = slot.time;
+        if (!isBooked) {
+          button.onclick = function() { selectSlot(slot.key, slot.time); };
+        } else {
+          button.disabled = true;
+        }
+        container.appendChild(button);
+      }
+    }
+
+    function selectSlot(key, time) {
+      selectedSlot = key;
+      renderSlots();
+      const dateObj = new Date(selectedDate);
+      const formattedDate = dateObj.toLocaleDateString('ru', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('selectedSlotInfo').innerHTML = 'Выбранное время: ' + formattedDate + ' — ' + time;
+      document.getElementById('bookingModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('bookingModal').classList.remove('active');
+      selectedSlot = null;
+      renderSlots();
+    }
+
+    function showToast(message, type) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast ' + type + ' show';
+      setTimeout(function() {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById('fullName').value.trim();
+      const phone = document.getElementById('phone').value;
+      const email = document.getElementById('email').value;
+      if (!fullName) {
+        showToast('Заполните ФИО', 'error');
+        return;
+      }
+      try {
+        const response = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slotKey: selectedSlot, fullName: fullName, phone: phone, email: email })
+        });
+        const result = await response.json();
+        if (response.ok) {
+          showToast('Запись успешно создана!', 'success');
+          closeModal();
+          await loadSlots(selectedDate);
+          document.getElementById('bookingForm').reset();
+        } else {
+          showToast(result.error || 'Ошибка при записи', 'error');
+        }
+      } catch (error) {
+        showToast('Ошибка соединения с сервером', 'error');
+      }
+    });
+
+    populateMonthSelect();
+    loadExternalLinks();
+  </script>
+</body>
+</html>

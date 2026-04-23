@@ -1,0 +1,11 @@
+meta:
+  environment: node
+  toolchain:
+    name: npm
+    version: 18
+build:
+  command: npm install
+run:
+  command: node server.js
+  port: 5000
+  persistenceMount: /app/database
